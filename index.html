@@ -247,9 +247,25 @@
 
 <div id="panel">
   <div id="panel-header">
-    <h1>Map Layers</h1>
-    <div id="category-tabs"></div>
-  </div>
+	  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+		<h1 style="margin-bottom:0">Map Layers</h1>
+		<button id="minimize-btn" title="Minimize" style="
+		  background: none;
+		  border: 1.5px solid var(--panel-border);
+		  border-radius: 5px;
+		  width: 26px;
+		  height: 26px;
+		  cursor: pointer;
+		  font-size: 14px;
+		  color: var(--text-secondary);
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  line-height: 1;
+		">−</button>
+	  </div>
+	  <div id="category-tabs"></div>
+	</div>
   <div id="field-list">
     <div id="field-list-label">Fields</div>
   </div>
@@ -321,7 +337,19 @@ require([
   let activeFieldId    = CATEGORIES[0].fields[0].id;
   let highlight        = null;
   let layerView        = null;
+// ── Minimize/expand panel ──
+const panel = document.getElementById("panel");
+const minimizeBtn = document.getElementById("minimize-btn");
+let minimized = false;
 
+minimizeBtn.onclick = () => {
+  minimized = !minimized;
+  document.getElementById("field-list").style.display = minimized ? "none" : "flex";
+  document.getElementById("legend-box").style.display = minimized ? "none" : "block";
+  document.querySelector("#panel-header .cat-tab-wrapper, #category-tabs").style.display = minimized ? "none" : "flex";
+  minimizeBtn.textContent = minimized ? "+" : "−";
+  panel.style.width = minimized ? "auto" : "270px";
+};
   const layer = new FeatureLayer({
     url: LAYER_URL,
     outFields: ["*"],
