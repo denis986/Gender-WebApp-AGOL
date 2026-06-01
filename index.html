@@ -264,7 +264,13 @@
   </div>
   <div id="legend-box">
     <p>Legend</p>
-    <div id="legend-gradient"></div>
+    <div id="legend-gradient"></div><div id="legend-gradient" style="display:flex; border-radius:5px; overflow:hidden; height:10px;">
+		<div style="flex:1; background:rgb(239,243,255)"></div>
+		<div style="flex:1; background:rgb(116,169,207)"></div>
+	    <div style="flex:1; background:rgb(49,130,189)"></div>
+		<div style="flex:1; background:rgb(13,101,165)"></div>
+		<div style="flex:1; background:rgb(8,48,107)"></div>
+	</div>
     <div id="legend-labels">
       <span id="legend-min">Low</span>
       <span id="legend-max">High</span>
@@ -300,13 +306,13 @@ const CATEGORIES = [
 ];
 
 // Choropleth color ramp (low → high)
-const COLOR_RAMP = [
-  [239, 246, 255],  // very light blue
-  [191, 219, 254],
-  [96,  165, 250],
-  [37,  99,  235],
-  [29,  78,  216],
-  [30,  58,  138]   // dark blue
+// Fixed 5 classes, distinct colors per class
+const CLASS_BREAKS = [
+  { min: 0,    max: 19.9,  color: [239, 243, 255], label: "0 – 19"  },  // very light blue
+  { min: 20,   max: 39.9,  color: [116, 169, 207], label: "20 – 39" },  // medium blue
+  { min: 40,   max: 59.9,  color: [49,  130, 189], label: "40 – 59" },  // blue
+  { min: 60,   max: 79.9,  color: [13,  101, 165], label: "60 – 79" },  // dark blue
+  { min: 80,   max: 100,   color: [8,   48,  107], label: "80 – 100"}   // very dark blue
 ];
 // ============================================================
 
@@ -392,12 +398,25 @@ require([
 
   // ── Choropleth renderer ──
   function applyRenderer() {
-    // Query min/max for the active field, then build class breaks
-    const query = layer.createQuery();
-    query.outStatistics = [
-      { statisticType: "min", onStatisticField: activeFieldId, outStatisticFieldName: "minVal" },
-      { statisticType: "max", onStatisticField: activeFieldId, outStatisticFieldName: "maxVal" }
-    ];
+  const breaks = CLASS_BREAKS.map(cb => ({
+    minValue: cb.min,
+    maxValue: cb.max,
+    symbol: new SimpleFillSymbol({
+      color: cb.color,
+      outline: { color: [255, 255, 255, 0.6], width: 0.5 }
+    }),
+    label: cb.label
+  }));
+
+  layer.renderer = new ClassBreaksRenderer({
+    field: activeFieldId,
+    classBreakInfos: breaks
+  });
+
+  // Update legend
+  document.getElementById("legend-min").textContent = "0";
+  document.getElementById("legend-max").textContent = "100";
+}
 
     layer.queryFeatures(query).then(result => {
       const stats = result.features[0].attributes;
