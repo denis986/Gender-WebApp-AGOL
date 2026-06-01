@@ -34,9 +34,11 @@
     }
 
     #panel {
+	  
       position: absolute;
       top: 20px;
-      left: 20px;
+      right: 20px;
+	  direction: rtl;
       width: 270px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
@@ -248,7 +250,7 @@
 <div id="panel">
   <div id="panel-header">
 	  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-		<h1 style="margin-bottom:0">Map Layers</h1>
+		<h1 style="margin-bottom:0">קטגוריות</h1>
 		<button id="minimize-btn" title="Minimize" style="
 		  background: none;
 		  border: 1.5px solid var(--panel-border);
@@ -267,24 +269,24 @@
 	  <div id="category-tabs"></div>
 	</div>
   <div id="field-list">
-    <div id="field-list-label">Fields</div>
+    <div id="field-list-label">שכבות</div>
   </div>
   <div id="legend-box">
-    <p>Legend</p>
+    <p>מקרא</p>
     <div id="legend-gradient">
-      <div style="flex:1; background:rgb(239,243,255)"></div>
-      <div style="flex:1; background:rgb(116,169,207)"></div>
-      <div style="flex:1; background:rgb(49,130,189)"></div>
-      <div style="flex:1; background:rgb(13,101,165)"></div>
       <div style="flex:1; background:rgb(8,48,107)"></div>
+      <div style="flex:1; background:rgb(13,101,165)"></div>
+      <div style="flex:1; background:rgb(49,130,189)"></div>
+      <div style="flex:1; background:rgb(116,169,207)"></div>
+      <div style="flex:1; background:rgb(239,243,255)"></div>
     </div>
     <div id="legend-labels">
-      <span>0</span>
-      <span>20</span>
-      <span>40</span>
-      <span>60</span>
-      <span>80</span>
       <span>100</span>
+      <span>80</span>
+      <span>60</span>
+      <span>40</span>
+      <span>20</span>
+      <span>0</span>
     </div>
   </div>
 </div>
@@ -370,7 +372,7 @@ minimizeBtn.onclick = () => {
       haloOpacity: 1
     },
     ui: { components: ["zoom", "compass"] },
-	padding: { left: 300 }
+	padding: { right: 300 }
   });
 
   const tabsEl    = document.getElementById("category-tabs");
