@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Map Viewer</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.29/"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --panel-bg: #ffffff;
+      --panel-border: #e8e8e8;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: #f3f4f6;
+    }
+
+    #viewDiv {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ── Side Panel ── */
+    #panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 270px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    #panel-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    #panel-header h1 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    /* Category tabs */
+    #category-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .cat-tab {
+      flex: 1;
+      padding: 7px 0;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 6px;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .cat-tab:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .cat-tab.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Field list */
+    #field-list {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #field-list-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 4px;
+      padding: 0 4px;
+    }
+
+    .field-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-primary);
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .field-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .field-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .field-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .field-btn.active .field-dot {
+      opacity: 1;
+    }
+
+    /* Legend */
+    #legend-box {
+      margin: 0 14px 14px;
+      padding: 10px 12px;
+      background: #f9fafb;
+      border: 1px solid var(--panel-border);
+      border-radius: 7px;
+    }
+
+    #legend-box p {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    #legend-gradient {
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(to right, #eff6ff, #1d4ed8);
+      margin-bottom: 5px;
+    }
+
+    #legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-secondary);
+    }
+
+    /* Hover tooltip */
+    #tooltip {
+      position: absolute;
+      background: #111827;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      pointer-events: none;
+      display: none;
+      z-index: 99;
+      white-space: nowrap;
+      transform: translate(12px, -50%);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    #tooltip::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 5px solid transparent;
+      border-right-color: #111827;
+      border-left: 0;
+    }
+
+    /* Loading */
+    #loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      font-size: 14px;
+      color: var(--text-secondary);
+      gap: 10px;
+      transition: opacity 0.3s;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #e5e7eb;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="viewDiv"></div>
+<div id="tooltip"></div>
+<div id="loading"><div class="spinner"></div> Loading map…</div>
+
+<!-- Side Panel -->
+<div id="panel">
+  <div id="panel-header">
+    <h1>Map Layers</h1>
+    <div id="category-tabs">
+      <!-- tabs injected by JS -->
+    </div>
+  </div>
+  <div id="field-list">
+    <div id="field-list-label">Fields</div>
+    <!-- field buttons injected by JS -->
+  </div>
+  <div id="legend-box">
+    <p>Legend</p>
+    <div id="legend-gradient"></div>
+    <div id="legend-labels">
+      <span id="legend-min">Low</span>
+      <span id="legend-max">High</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CONFIGURATION — edit this section to match your data
+// ============================================================
+const LAYER_URL = "https://services2.arcgis.com/xMRYm7cNgdR5RN6F/arcgis/rest/services/Map2/FeatureServer/0";
+
+const CATEGORIES = [
+  {
+    id: "education",
+    label: "Education",
+    fields: [
+      { id: "female_bagrut_elig_percent", label: "Field H1", alias: "Education Indicator 1" },  // 👈 replace field id with real field name
+      { id: "female_bagrut_math_5_percent", label: "Field H2", alias: "Education Indicator 2" },
+      { id: "female_bagrut_eng_5_percent", label: "Field H3", alias: "Education Indicator 3" }
+    ]
+  },
+  {
+    id: "demography",
+    label: "Demography",
+    fields: [
+      { id: "female_self_empe_percent", label: "Field D1", alias: "Demographic Indicator 1" }, // 👈 replace field id with real field name
+      { id: "female_athletes_percent", label: "Field D2", alias: "Demographic Indicator 2" },
+      { id: "female_doctors_percent", label: "Field D3", alias: "Demographic Indicator 3" }
+    ]
+  }
+];
+
+// Choropleth color ramp (low → high)
+const COLOR_RAMP = [
+  [239, 246, 255],  // very light blue
+  [191, 219, 254],
+  [96,  165, 250],
+  [37,  99,  235],
+  [29,  78,  216],
+  [30,  58,  138]   // dark blue
+];
+// ============================================================
+
+require([
+  "esri/Map",
+  "esri/views/MapView",
+  "esri/layers/FeatureLayer",
+  "esri/renderers/ClassBreaksRenderer",
+  "esri/symbols/SimpleFillSymbol"
+], function (Map, MapView, FeatureLayer, ClassBreaksRenderer, SimpleFillSymbol) {
+
+  // ── State ──
+  let activeCategoryId = CATEGORIES[0].id;
+  let activeFieldId    = CATEGORIES[0].fields[0].id;
+  let highlight        = null;
+  let layerView        = null;
+
+  // ── Layer ──
+  const layer = new FeatureLayer({
+    url: LAYER_URL,
+    outFields: ["*"],
+    popupEnabled: true
+  });
+
+  const map = new Map({ basemap: "gray-vector", layers: [layer] });
+
+  const view = new MapView({
+    container: "viewDiv",
+    map: map,
+    zoom: 9,
+    center: [34.8, 31.9],
+    highlightOptions: {
+      color: [255, 200, 0],
+      fillOpacity: 0.35,
+      haloColor: [255, 165, 0],
+      haloOpacity: 1
+    },
+    ui: { components: ["zoom", "compass"] }
+  });
+
+  // ── Build UI ──
+  const tabsEl     = document.getElementById("category-tabs");
+  const fieldEl    = document.getElementById("field-list");
+  const tooltip    = document.getElementById("tooltip");
+  const loadingEl  = document.getElementById("loading");
+
+  function buildTabs() {
+    tabsEl.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "cat-tab" + (cat.id === activeCategoryId ? " active" : "");
+      btn.textContent = cat.label;
+      btn.onclick = () => {
+        activeCategoryId = cat.id;
+        activeFieldId = cat.fields[0].id;
+        buildTabs();
+        buildFields();
+        applyRenderer();
+      };
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  function buildFields() {
+    // keep label, remove old buttons
+    const label = document.getElementById("field-list-label");
+    fieldEl.innerHTML = "";
+    fieldEl.appendChild(label);
+
+    const cat = CATEGORIES.find(c => c.id === activeCategoryId);
+    cat.fields.forEach(f => {
+      const btn = document.createElement("button");
+      btn.className = "field-btn" + (f.id === activeFieldId ? " active" : "");
+      btn.innerHTML = `<span class="field-dot"></span>${f.label}`;
+      btn.onclick = () => {
+        activeFieldId = f.id;
+        buildFields();
+        applyRenderer();
+      };
+      fieldEl.appendChild(btn);
+    });
+  }
+
+  // ── Choropleth renderer ──
+  function applyRenderer() {
+    // Query min/max for the active field, then build class breaks
+    const query = layer.createQuery();
+    query.outStatistics = [
+      { statisticType: "min", onStatisticField: activeFieldId, outStatisticFieldName: "minVal" },
+      { statisticType: "max", onStatisticField: activeFieldId, outStatisticFieldName: "maxVal" }
+    ];
+
+    layer.queryFeatures(query).then(result => {
+      const stats = result.features[0].attributes;
+      const minVal = stats.minVal;
+      const maxVal = stats.maxVal;
+      const step   = (maxVal - minVal) / COLOR_RAMP.length;
+
+      const breaks = COLOR_RAMP.map((color, i) => ({
+        minValue: minVal + i * step,
+        maxValue: minVal + (i + 1) * step,
+        symbol: new SimpleFillSymbol({
+          color: color,
+          outline: { color: [255, 255, 255, 0.5], width: 0.5 }
+        })
+      }));
+
+      layer.renderer = new ClassBreaksRenderer({
+        field: activeFieldId,
+        classBreakInfos: breaks
+      });
+
+      // Update legend
+      document.getElementById("legend-min").textContent = Math.round(minVal).toLocaleString();
+      document.getElementById("legend-max").textContent = Math.round(maxVal).toLocaleString();
+
+    }).catch(() => {
+      // If stats fail (e.g. field is string), just apply a simple renderer
+      layer.renderer = new ClassBreaksRenderer({ field: activeFieldId, classBreakInfos: [] });
+    });
+  }
+
+  // ── Hover highlight ──
+  view.whenLayerView(layer).then(lv => {
+    layerView = lv;
+
+    view.on("pointer-move", event => {
+      view.hitTest(event).then(response => {
+        if (highlight) { highlight.remove(); highlight = null; }
+
+        const result = response.results.find(r => r.graphic?.layer === layer);
+
+        if (result) {
+          highlight = layerView.highlight(result.graphic);
+
+          // Show tooltip with field value
+          const val = result.graphic.attributes[activeFieldId];
+          const cat = CATEGORIES.find(c => c.id === activeCategoryId);
+          const fieldDef = cat.fields.find(f => f.id === activeFieldId);
+          tooltip.textContent = `${fieldDef.label}: ${val != null ? Number(val).toLocaleString() : "N/A"}`;
+          tooltip.style.display = "block";
+          tooltip.style.left = event.x + "px";
+          tooltip.style.top  = event.y + "px";
+        } else {
+          tooltip.style.display = "none";
+        }
+      });
+    });
+
+    // Hide tooltip when mouse leaves map
+    view.on("pointer-leave", () => {
+      if (highlight) { highlight.remove(); highlight = null; }
+      tooltip.style.display = "none";
+    });
+  });
+
+  // ── Init ──
+  view.when(() => {
+    loadingEl.style.opacity = "0";
+    setTimeout(() => loadingEl.style.display = "none", 300);
+    buildTabs();
+    buildFields();
+    applyRenderer();
+  });
+
+});
+</script>
+</body>
+</html>
