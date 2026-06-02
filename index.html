@@ -8,8 +8,10 @@
   <script src="https://js.arcgis.com/4.29/"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
+    /* ── Reset ── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── CSS Variables ── */
     :root {
       --panel-bg: #ffffff;
       --panel-border: #e8e8e8;
@@ -21,6 +23,7 @@
       --shadow: 0 4px 24px rgba(0,0,0,0.10);
     }
 
+    /* ── Base ── */
     html, body {
       height: 100%;
       width: 100%;
@@ -28,17 +31,18 @@
       background: #f3f4f6;
     }
 
+    /* ── Map container ── */
     #viewDiv {
       position: absolute;
       inset: 0;
     }
 
+    /* ── Side Panel ── */
     #panel {
-	  
       position: absolute;
       top: 20px;
       right: 20px;
-	  direction: rtl;
+      direction: rtl;
       width: 270px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
@@ -62,6 +66,30 @@
       margin-bottom: 10px;
     }
 
+    /* ── Minimize button ── */
+    #minimize-btn {
+      background: none;
+      border: 1.5px solid var(--panel-border);
+      border-radius: 5px;
+      width: 26px;
+      height: 26px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      direction: ltr;
+      flex-shrink: 0;
+    }
+
+    #minimize-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── Category tabs ── */
     #category-tabs {
       display: flex;
       gap: 6px;
@@ -94,6 +122,7 @@
       color: #fff;
     }
 
+    /* ── Field list ── */
     #field-list {
       padding: 12px 14px;
       display: flex;
@@ -124,7 +153,7 @@
       font-size: 13px;
       font-weight: 400;
       color: var(--text-primary);
-      text-align: left;
+      text-align: right;
       transition: all 0.15s ease;
     }
 
@@ -155,6 +184,69 @@
       opacity: 1;
     }
 
+    /* ── Range Slider ── */
+    #slider-box {
+      margin: 0 14px 10px;
+      padding: 10px 12px;
+      background: #f9fafb;
+      border: 1px solid var(--panel-border);
+      border-radius: 7px;
+    }
+
+    #slider-box p {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+
+    #slider-track {
+      position: relative;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      margin: 12px 8px;
+    }
+
+    #slider-range {
+      position: absolute;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    .slider-handle {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      z-index: 2;
+      transition: box-shadow 0.15s;
+    }
+
+    .slider-handle:hover,
+    .slider-handle:active {
+      box-shadow: 0 0 0 4px var(--accent-light);
+    }
+
+    #slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ── Legend ── */
     #legend-box {
       margin: 0 14px 14px;
       padding: 10px 12px;
@@ -188,6 +280,7 @@
       color: var(--text-secondary);
     }
 
+    /* ── Hover Tooltip ── */
     #tooltip {
       position: absolute;
       background: #111827;
@@ -215,6 +308,7 @@
       border-left: 0;
     }
 
+    /* ── Loading Spinner ── */
     #loading {
       position: absolute;
       inset: 0;
@@ -243,34 +337,48 @@
 </head>
 <body>
 
+<!-- Map -->
 <div id="viewDiv"></div>
-<div id="tooltip"></div>
-<div id="loading"><div class="spinner"></div> Loading map…</div>
 
+<!-- Hover tooltip -->
+<div id="tooltip"></div>
+
+<!-- Loading overlay -->
+<div id="loading"><div class="spinner"></div> טוען מפה…</div>
+
+<!-- Side Panel -->
 <div id="panel">
+
+  <!-- Header: title + minimize button -->
   <div id="panel-header">
-	  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-		<h1 style="margin-bottom:0">קטגוריות</h1>
-		<button id="minimize-btn" title="Minimize" style="
-		  background: none;
-		  border: 1.5px solid var(--panel-border);
-		  border-radius: 5px;
-		  width: 26px;
-		  height: 26px;
-		  cursor: pointer;
-		  font-size: 14px;
-		  color: var(--text-secondary);
-		  display: flex;
-		  align-items: center;
-		  justify-content: center;
-		  line-height: 1;
-		">−</button>
-	  </div>
-	  <div id="category-tabs"></div>
-	</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h1 style="margin-bottom:0">קטגוריות</h1>
+      <button id="minimize-btn" title="Minimize">−</button>
+    </div>
+    <!-- Category tabs injected by JS -->
+    <div id="category-tabs"></div>
+  </div>
+
+  <!-- Field buttons injected by JS -->
   <div id="field-list">
     <div id="field-list-label">שכבות</div>
   </div>
+
+  <!-- Range slider filter -->
+  <div id="slider-box">
+    <p>סינון</p>
+    <div id="slider-track">
+      <div id="slider-range"></div>
+      <div class="slider-handle" id="handle-min"></div>
+      <div class="slider-handle" id="handle-max"></div>
+    </div>
+    <div id="slider-labels">
+      <span id="slider-max-label">100%</span>
+      <span id="slider-min-label">0%</span>
+    </div>
+  </div>
+
+  <!-- Legend -->
   <div id="legend-box">
     <p>מקרא</p>
     <div id="legend-gradient">
@@ -289,7 +397,8 @@
       <span>0</span>
     </div>
   </div>
-</div>
+
+</div><!-- end #panel -->
 
 <script>
 // ============================================================
@@ -300,7 +409,7 @@ const LAYER_URL = "https://services2.arcgis.com/xMRYm7cNgdR5RN6F/arcgis/rest/ser
 const CATEGORIES = [
   {
     id: "education",
-    label: "Education",
+    label: "חינוך",
     fields: [
       { id: "female_bagrut_elig_percent",   label: "Field H1", alias: "Education Indicator 1" },
       { id: "female_bagrut_math_5_percent", label: "Field H2", alias: "Education Indicator 2" },
@@ -309,7 +418,7 @@ const CATEGORIES = [
   },
   {
     id: "demography",
-    label: "Demography",
+    label: "דמוגרפיה",
     fields: [
       { id: "female_self_empe_percent",  label: "Field D1", alias: "Demographic Indicator 1" },
       { id: "female_athletes_percent",   label: "Field D2", alias: "Demographic Indicator 2" },
@@ -318,12 +427,13 @@ const CATEGORIES = [
   }
 ];
 
+// 5 fixed class breaks — values are 0–1 decimals (e.g. 0.6 = 60%)
 const CLASS_BREAKS = [
-  { min: 0,  max: 0.199, color: [239, 243, 255], label: "0 – 19"   },
+  { min: 0,   max: 0.199, color: [239, 243, 255], label: "0 – 19"   },
   { min: 0.2, max: 0.399, color: [116, 169, 207], label: "20 – 39"  },
   { min: 0.4, max: 0.599, color: [49,  130, 189], label: "40 – 59"  },
   { min: 0.6, max: 0.799, color: [13,  101, 165], label: "60 – 79"  },
-  { min: 0.8, max: 1,  color: [8,   48,  107], label: "80 – 100" }
+  { min: 0.8, max: 1.0,   color: [8,   48,  107], label: "80 – 100" }
 ];
 // ============================================================
 
@@ -335,23 +445,13 @@ require([
   "esri/symbols/SimpleFillSymbol"
 ], function (Map, MapView, FeatureLayer, ClassBreaksRenderer, SimpleFillSymbol) {
 
+  // ── State ──
   let activeCategoryId = CATEGORIES[0].id;
   let activeFieldId    = CATEGORIES[0].fields[0].id;
   let highlight        = null;
   let layerView        = null;
-// ── Minimize/expand panel ──
-const panel = document.getElementById("panel");
-const minimizeBtn = document.getElementById("minimize-btn");
-let minimized = false;
 
-minimizeBtn.onclick = () => {
-  minimized = !minimized;
-  document.getElementById("field-list").style.display = minimized ? "none" : "flex";
-  document.getElementById("legend-box").style.display = minimized ? "none" : "block";
-  document.querySelector("#panel-header .cat-tab-wrapper, #category-tabs").style.display = minimized ? "none" : "flex";
-  minimizeBtn.textContent = minimized ? "+" : "−";
-  panel.style.width = minimized ? "auto" : "270px";
-};
+  // ── Layer ──
   const layer = new FeatureLayer({
     url: LAYER_URL,
     outFields: ["*"],
@@ -360,6 +460,7 @@ minimizeBtn.onclick = () => {
 
   const map = new Map({ basemap: "gray-vector", layers: [layer] });
 
+  // ── Map View ──
   const view = new MapView({
     container: "viewDiv",
     map: map,
@@ -372,14 +473,31 @@ minimizeBtn.onclick = () => {
       haloOpacity: 1
     },
     ui: { components: ["zoom", "compass"] },
-	padding: { right: 300 }
+    padding: { right: 300 }
   });
 
-  const tabsEl    = document.getElementById("category-tabs");
-  const fieldEl   = document.getElementById("field-list");
-  const tooltip   = document.getElementById("tooltip");
-  const loadingEl = document.getElementById("loading");
+  // ── DOM refs ──
+  const tabsEl      = document.getElementById("category-tabs");
+  const fieldEl     = document.getElementById("field-list");
+  const tooltip     = document.getElementById("tooltip");
+  const loadingEl   = document.getElementById("loading");
+  const panel       = document.getElementById("panel");
+  const minimizeBtn = document.getElementById("minimize-btn");
 
+  // ── Minimize / expand panel ──
+  let minimized = false;
+  minimizeBtn.onclick = () => {
+    minimized = !minimized;
+    document.getElementById("field-list").style.display   = minimized ? "none" : "flex";
+    document.getElementById("legend-box").style.display   = minimized ? "none" : "block";
+    document.getElementById("slider-box").style.display   = minimized ? "none" : "block";
+    document.getElementById("category-tabs").style.display = minimized ? "none" : "flex";
+    minimizeBtn.textContent = minimized ? "+" : "−";
+    panel.style.width = minimized ? "auto" : "270px";
+    view.padding = { right: minimized ? 60 : 300 };
+  };
+
+  // ── Build category tabs ──
   function buildTabs() {
     tabsEl.innerHTML = "";
     CATEGORIES.forEach(cat => {
@@ -397,6 +515,7 @@ minimizeBtn.onclick = () => {
     });
   }
 
+  // ── Build field buttons ──
   function buildFields() {
     const label = document.getElementById("field-list-label");
     fieldEl.innerHTML = "";
@@ -416,13 +535,21 @@ minimizeBtn.onclick = () => {
     });
   }
 
+  // ── Apply choropleth renderer + slider filter ──
+  // Polygons inside the slider range get their normal color.
+  // Polygons outside the range are grayed out.
   function applyRenderer() {
+    const minVal = sliderMin / 100;  // convert display % back to 0–1 decimal
+    const maxVal = sliderMax / 100;
+
     const breaks = CLASS_BREAKS.map(cb => ({
       minValue: cb.min,
       maxValue: cb.max,
       symbol: new SimpleFillSymbol({
-        color: cb.color,
-        outline: { color: [255, 255, 255, 0.6], width: 0.5 }
+        color: cb.max >= minVal && cb.min <= maxVal
+          ? cb.color                  // inside range: normal color
+          : [200, 200, 200, 0.3],     // outside range: grayed out
+        outline: { color: [255, 255, 255, 0.4], width: 0.5 }
       }),
       label: cb.label
     }));
@@ -433,6 +560,63 @@ minimizeBtn.onclick = () => {
     });
   }
 
+  // ── Range Slider ──
+  let sliderMin = 0;    // display values 0–100
+  let sliderMax = 100;
+
+  const track     = document.getElementById("slider-track");
+  const handleMin = document.getElementById("handle-min");
+  const handleMax = document.getElementById("handle-max");
+  const rangeEl   = document.getElementById("slider-range");
+  const minLabel  = document.getElementById("slider-min-label");
+  const maxLabel  = document.getElementById("slider-max-label");
+
+  // Update slider visual position and labels
+  function updateSliderUI() {
+    handleMin.style.left = sliderMin + "%";
+    handleMax.style.left = sliderMax + "%";
+    rangeEl.style.left   = sliderMin + "%";
+    rangeEl.style.right  = (100 - sliderMax) + "%";
+    minLabel.textContent = sliderMin + "%";
+    maxLabel.textContent = sliderMax + "%";
+  }
+
+  // Make a handle draggable — isMin=true for left handle, false for right
+  function makeDraggable(handle, isMin) {
+    handle.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      const trackRect = track.getBoundingClientRect();
+
+      const onMove = e => {
+        const pct = Math.round(
+          Math.max(0, Math.min(100,
+            ((e.clientX - trackRect.left) / trackRect.width) * 100
+          ))
+        );
+        if (isMin) {
+          sliderMin = Math.min(pct, sliderMax - 1);
+        } else {
+          sliderMax = Math.max(pct, sliderMin + 1);
+        }
+        updateSliderUI();
+        applyRenderer();
+      };
+
+      const onUp = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
+
+  makeDraggable(handleMin, true);
+  makeDraggable(handleMax, false);
+  updateSliderUI();
+
+  // ── Hover highlight ──
   view.whenLayerView(layer).then(lv => {
     layerView = lv;
 
@@ -445,13 +629,13 @@ minimizeBtn.onclick = () => {
         if (result) {
           highlight = layerView.highlight(result.graphic);
 
-          const val = result.graphic.attributes[activeFieldId];
-          const cat = CATEGORIES.find(c => c.id === activeCategoryId);
+          const val      = result.graphic.attributes[activeFieldId];
+          const cat      = CATEGORIES.find(c => c.id === activeCategoryId);
           const fieldDef = cat.fields.find(f => f.id === activeFieldId);
           tooltip.textContent = `${fieldDef.label}: ${val != null ? (val * 100).toFixed(1) + "%" : "N/A"}`;
           tooltip.style.display = "block";
-          tooltip.style.left = event.x + "px";
-          tooltip.style.top  = event.y + "px";
+          tooltip.style.left    = event.x + "px";
+          tooltip.style.top     = event.y + "px";
         } else {
           tooltip.style.display = "none";
         }
@@ -464,6 +648,7 @@ minimizeBtn.onclick = () => {
     });
   });
 
+  // ── Init ──
   view.when(() => {
     loadingEl.style.opacity = "0";
     setTimeout(() => loadingEl.style.display = "none", 300);
