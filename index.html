@@ -422,7 +422,8 @@ const CATEGORIES = [
     fields: [
       { id: "female_self_empe_percent",  label: "Field D1", alias: "Demographic Indicator 1" },
       { id: "female_athletes_percent",   label: "Field D2", alias: "Demographic Indicator 2" },
-      { id: "female_doctors_percent",    label: "Field D3", alias: "Demographic Indicator 3" }
+      { id: "female_doctors_percent",    label: "Field D3", alias: "Demographic Indicator 3" },
+	  { id: "pns_gender_wage_gap_rate",    label: "Field D4", alias: "Demographic Indicator 4" }
     ]
   }
 ];
@@ -535,20 +536,15 @@ require([
     });
   }
 
-  // ── Apply choropleth renderer + slider filter ──
-  // Polygons inside the slider range get their normal color.
-  // Polygons outside the range are grayed out.
+// ── Apply choropleth renderer ──
+// Applies class break colors based on the active field.
+// Renderer is re-applied when switching fields or categories.
   function applyRenderer() {
-    const minVal = sliderMin / 100;  // convert display % back to 0–1 decimal
-    const maxVal = sliderMax / 100;
-
     const breaks = CLASS_BREAKS.map(cb => ({
       minValue: cb.min,
       maxValue: cb.max,
       symbol: new SimpleFillSymbol({
-        color: cb.max >= minVal && cb.min <= maxVal
-          ? cb.color                  // inside range: normal color
-          : [200, 200, 200, 0.3],     // outside range: grayed out
+        color: cb.color,
         outline: { color: [255, 255, 255, 0.4], width: 0.5 }
       }),
       label: cb.label
@@ -558,8 +554,21 @@ require([
       field: activeFieldId,
       classBreakInfos: breaks
     });
+
+    applyFilter();  // reapply filter whenever renderer changes
   }
 
+  // ── Apply exact value filter ──
+  // Uses definitionExpression to show/gray polygons by exact field value.
+  // sliderMin/Max are 0-100 display values, converted back to 0-1 decimals.
+  function applyFilter() {
+    const minVal = sliderMin / 100;
+    const maxVal = sliderMax / 100;
+    // Only show features within the exact slider range
+    layer.definitionExpression =
+      `${activeFieldId} >= ${minVal} AND ${activeFieldId} <= ${maxVal}`;
+  }
+  
   // ── Range Slider ──
   let sliderMin = 0;    // display values 0–100
   let sliderMax = 100;
@@ -599,7 +608,7 @@ require([
           sliderMax = Math.max(pct, sliderMin + 1);
         }
         updateSliderUI();
-        applyRenderer();
+        applyFilter();
       };
 
       const onUp = () => {
