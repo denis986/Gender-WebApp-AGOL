@@ -4,297 +4,281 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Map Viewer</title>
+
+  <!-- ArcGIS Maps SDK -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
   <script src="https://js.arcgis.com/4.29/"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Calcite Components -->
+  <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/2.8.0/calcite.css" />
+  <script type="module" src="https://js.arcgis.com/calcite-components/2.8.0/calcite.esm.js"></script>
+
   <style>
     /* ── Reset ── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── CSS Variables ── */
+    /* ── Pastel color palette ── */
     :root {
-      --panel-bg: #ffffff;
-      --panel-border: #e8e8e8;
-      --accent: #2563eb;
-      --accent-light: #eff6ff;
-      --text-primary: #111827;
-      --text-secondary: #6b7280;
-      --radius: 10px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.10);
+      --rose:        #f4a7b9;
+      --rose-light:  #fdf2f5;
+      --rose-dark:   #c0607a;
+      --sage:        #a8c5a0;
+      --sage-light:  #f2f7f1;
+      --lavender:    #b9a7d4;
+      --sky:         #a7c4e0;
+      --sky-light:   #f0f6fb;
+      --mist:        #e8edf2;
+      --panel-bg:    #ffffff;
+      --panel-border:#eaeef2;
+      --text-1:      #2d3748;
+      --text-2:      #718096;
+      --text-3:      #a0aec0;
+      --radius:      12px;
+      --radius-sm:   7px;
+      --shadow:      0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
     }
 
     /* ── Base ── */
     html, body {
       height: 100%;
       width: 100%;
-      font-family: 'DM Sans', sans-serif;
-      background: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
-    /* ── Map container ── */
+    /* ── Map ── */
     #viewDiv {
       position: absolute;
       inset: 0;
     }
 
-    /* ── Side Panel ── */
+    /* ── Floating Panel ── */
     #panel {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      direction: rtl;
-      width: 270px;
+      top: 16px;
+      right: 16px;
+      width: 260px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
       z-index: 10;
+      direction: rtl;
+      overflow: hidden;
+      transition: width 0.2s ease;
     }
 
+    /* ── Panel Header ── */
     #panel-header {
-      padding: 16px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #f8f9ff 0%, #f0f4f8 100%);
       border-bottom: 1px solid var(--panel-border);
     }
 
-    #panel-header h1 {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+    #panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
+      color: var(--text-2);
     }
 
-    /* ── Minimize button ── */
-    #minimize-btn {
-      background: none;
-      border: 1.5px solid var(--panel-border);
-      border-radius: 5px;
-      width: 26px;
-      height: 26px;
+    /* Collapse toggle button */
+    #collapse-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: var(--mist);
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
-      color: var(--text-secondary);
+      color: var(--text-2);
+      font-size: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
-      line-height: 1;
+      transition: background 0.15s;
       direction: ltr;
       flex-shrink: 0;
     }
 
-    #minimize-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    #collapse-btn:hover { background: #dde3ea; }
 
-    /* ── Category tabs ── */
-    #category-tabs {
-      display: flex;
-      gap: 6px;
-    }
-
-    .cat-tab {
-      flex: 1;
-      padding: 7px 0;
-      border: 1.5px solid var(--panel-border);
-      border-radius: 6px;
-      background: transparent;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      text-align: center;
-    }
-
-    .cat-tab:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-
-    .cat-tab.active {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: #fff;
-    }
-
-    /* ── Field list ── */
-    #field-list {
-      padding: 12px 14px;
+    /* ── Panel Body ── */
+    #panel-body {
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
+      overflow-y: auto;
+      max-height: calc(100vh - 80px);
     }
 
-    #field-list-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-secondary);
+    /* ── Section label ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 4px;
-      padding: 0 4px;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    /* ── Category dropdown ── */
+    #cat-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1.5px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      background: #fafbfc;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-1);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 10px center;
+      transition: border-color 0.15s;
+      direction: rtl;
+    }
+
+    #cat-select:focus {
+      outline: none;
+      border-color: var(--lavender);
+      box-shadow: 0 0 0 3px rgba(185,167,212,0.15);
+    }
+
+    /* ── Field buttons ── */
+    #field-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
 
     .field-btn {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
+      gap: 8px;
+      padding: 8px 11px;
       border: 1.5px solid var(--panel-border);
-      border-radius: 7px;
-      background: transparent;
+      border-radius: var(--radius-sm);
+      background: #fafbfc;
       cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 400;
-      color: var(--text-primary);
+      color: var(--text-1);
       text-align: right;
       transition: all 0.15s ease;
+      width: 100%;
     }
 
     .field-btn:hover {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      color: var(--accent);
+      border-color: var(--lavender);
+      background: #f7f4fd;
+      color: #6b4fa8;
     }
 
     .field-btn.active {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      color: var(--accent);
-      font-weight: 500;
+      border-color: var(--lavender);
+      background: linear-gradient(135deg, #f3effb, #ede8f7);
+      color: #6b4fa8;
+      font-weight: 600;
     }
 
+    /* Colored dot indicator on active field */
     .field-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--accent);
+      background: var(--lavender);
       flex-shrink: 0;
       opacity: 0;
       transition: opacity 0.15s;
     }
 
-    .field-btn.active .field-dot {
-      opacity: 1;
+    .field-btn.active .field-dot { opacity: 1; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--panel-border);
+      margin: 2px 0;
     }
 
-    /* ── Range Slider ── */
-    #slider-box {
-      margin: 0 14px 10px;
-      padding: 10px 12px;
-      background: #f9fafb;
-      border: 1px solid var(--panel-border);
-      border-radius: 7px;
+    /* ── Slider section ── */
+    #slider-section {
+      padding: 4px 2px 2px;
     }
 
-    #slider-box p {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 10px;
-    }
-
-    #slider-track {
-      position: relative;
-      height: 6px;
-      background: #e5e7eb;
-      border-radius: 3px;
-      margin: 12px 8px;
-    }
-
-    #slider-range {
-      position: absolute;
-      height: 100%;
-      background: var(--accent);
-      border-radius: 3px;
-      pointer-events: none;
-    }
-
-    .slider-handle {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      background: #fff;
-      border: 2px solid var(--accent);
-      border-radius: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      cursor: grab;
-      z-index: 2;
-      transition: box-shadow 0.15s;
-    }
-
-    .slider-handle:hover,
-    .slider-handle:active {
-      box-shadow: 0 0 0 4px var(--accent-light);
-    }
-
-    #slider-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      color: var(--text-secondary);
-      margin-top: 4px;
+    /* Override Calcite slider to match pastel theme */
+    calcite-slider {
+      direction: ltr;
+      --calcite-color-brand:          #b9a7d4;
+      --calcite-color-brand-hover:    #a090c0;
+      --calcite-color-brand-press:    #8a78b0;
+      --calcite-slider-track-fill-color:       #b9a7d4;
+      --calcite-slider-handle-fill-color:      #ffffff;
+      --calcite-slider-handle-border-color:    #b9a7d4;
+      --calcite-slider-handle-extension-color: #b9a7d4;
+      --calcite-slider-tick-border-color:      #d4cce8;
+      --calcite-slider-tick-selected-color:    #b9a7d4;
+      --calcite-slider-text-color:             #718096;
+      width: 100%;
     }
 
     /* ── Legend ── */
-    #legend-box {
-      margin: 0 14px 14px;
-      padding: 10px 12px;
-      background: #f9fafb;
-      border: 1px solid var(--panel-border);
-      border-radius: 7px;
-    }
-
-    #legend-box p {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 8px;
-    }
-
     #legend-gradient {
       display: flex;
       border-radius: 5px;
       overflow: hidden;
-      height: 10px;
-      margin-bottom: 5px;
+      height: 8px;
+      margin-bottom: 6px;
     }
 
     #legend-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      color: var(--text-secondary);
+      font-size: 10px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Legend class rows */
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+      font-size: 11.5px;
+      color: var(--text-2);
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,0.06);
     }
 
     /* ── Hover Tooltip ── */
     #tooltip {
       position: absolute;
-      background: #111827;
+      background: rgba(30, 30, 40, 0.92);
       color: #fff;
-      padding: 6px 12px;
+      padding: 5px 11px;
       border-radius: 6px;
       font-size: 12px;
-      font-family: 'DM Mono', monospace;
       pointer-events: none;
       display: none;
       z-index: 99;
       white-space: nowrap;
-      transform: translate(12px, -50%);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      transform: translate(14px, -50%);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      backdrop-filter: blur(4px);
     }
 
     #tooltip::before {
@@ -304,30 +288,30 @@
       top: 50%;
       transform: translateY(-50%);
       border: 5px solid transparent;
-      border-right-color: #111827;
+      border-right-color: rgba(30,30,40,0.92);
       border-left: 0;
     }
 
-    /* ── Loading Spinner ── */
+    /* ── Loading overlay ── */
     #loading {
       position: absolute;
       inset: 0;
-      background: rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.8);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 50;
-      font-size: 14px;
-      color: var(--text-secondary);
       gap: 10px;
+      font-size: 13px;
+      color: var(--text-2);
       transition: opacity 0.3s;
     }
 
     .spinner {
       width: 18px;
       height: 18px;
-      border: 2px solid #e5e7eb;
-      border-top-color: var(--accent);
+      border: 2px solid #e2e8f0;
+      border-top-color: var(--lavender);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
@@ -346,59 +330,76 @@
 <!-- Loading overlay -->
 <div id="loading"><div class="spinner"></div> טוען מפה…</div>
 
-<!-- Side Panel -->
+<!-- ── Floating Panel ── -->
 <div id="panel">
 
-  <!-- Header: title + minimize button -->
+  <!-- Header -->
   <div id="panel-header">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h1 style="margin-bottom:0">קטגוריות</h1>
-      <button id="minimize-btn" title="Minimize">−</button>
-    </div>
-    <!-- Category tabs injected by JS -->
-    <div id="category-tabs"></div>
+    <span id="panel-title">מפת נתונים</span>
+    <button id="collapse-btn" title="כווץ">−</button>
   </div>
 
-  <!-- Field buttons injected by JS -->
-  <div id="field-list">
-    <div id="field-list-label">שכבות</div>
-  </div>
+  <!-- Body (collapsible) -->
+  <div id="panel-body">
 
-  <!-- Range slider filter -->
-  <div id="slider-box">
-    <p>סינון</p>
-    <div id="slider-track">
-      <div id="slider-range"></div>
-      <div class="slider-handle" id="handle-min"></div>
-      <div class="slider-handle" id="handle-max"></div>
+    <!-- Category dropdown -->
+    <div>
+      <div class="section-label">קטגוריה</div>
+      <select id="cat-select"></select>
     </div>
-    <div id="slider-labels">
-      <span id="slider-max-label">100%</span>
-      <span id="slider-min-label">0%</span>
-    </div>
-  </div>
 
-  <!-- Legend -->
-  <div id="legend-box">
-    <p>מקרא</p>
-    <div id="legend-gradient">
-      <div style="flex:1; background:rgb(8,48,107)"></div>
-      <div style="flex:1; background:rgb(13,101,165)"></div>
-      <div style="flex:1; background:rgb(49,130,189)"></div>
-      <div style="flex:1; background:rgb(116,169,207)"></div>
-      <div style="flex:1; background:rgb(239,243,255)"></div>
-    </div>
-    <div id="legend-labels">
-      <span>100</span>
-      <span>80</span>
-      <span>60</span>
-      <span>40</span>
-      <span>20</span>
-      <span>0</span>
-    </div>
-  </div>
+    <div class="divider"></div>
 
-</div><!-- end #panel -->
+    <!-- Field buttons (injected by JS) -->
+    <div>
+      <div class="section-label">שכבות</div>
+      <div id="field-list"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Range slider (Calcite) -->
+    <div id="slider-section">
+      <div class="section-label">סינון ערכים</div>
+      <calcite-slider
+        id="range-slider"
+        min="0" max="100"
+        min-value="0" max-value="100"
+        label-handles
+        ticks="20"
+      ></calcite-slider>
+    </div>
+
+    <div class="divider"></div>
+
+    
+    <!-- Legend -->
+    <div>
+      <div class="section-label">מקרא</div>
+      <div id="legend-gradient" style="
+        display: flex;
+        border-radius: 5px;
+        overflow: hidden;
+        height: 10px;
+        margin-bottom: 6px;
+      "></div>
+      <div id="legend-labels" style="
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--text-3);
+      ">
+        <span>100%</span>
+        <span>80%</span>
+        <span>60%</span>
+        <span>40%</span>
+        <span>20%</span>
+        <span>0%</span>
+      </div>
+    </div>
+
+  </div><!-- end panel-body -->
+</div><!-- end panel -->
 
 <script>
 // ============================================================
@@ -411,30 +412,30 @@ const CATEGORIES = [
     id: "education",
     label: "חינוך",
     fields: [
-      { id: "female_bagrut_elig_percent",   label: "Field H1", alias: "Education Indicator 1" },
-      { id: "female_bagrut_math_5_percent", label: "Field H2", alias: "Education Indicator 2" },
-      { id: "female_bagrut_eng_5_percent",  label: "Field H3", alias: "Education Indicator 3" }
+      { id: "female_bagrut_elig_percent",   label: "אחוז זכאיות לתעודת בגרות" },
+      { id: "female_bagrut_math_5_percent", label: "אחוז זכאיות לתעודת בגרות שנבחנו במתמטיקה 5 יחל" },
+      { id: "female_bagrut_eng_5_percent",  label: "אחוז זכאיות לתעודת בגרות שנבחנו באנגלית 5 יחל" }
     ]
   },
   {
     id: "demography",
     label: "דמוגרפיה",
     fields: [
-      { id: "female_self_empe_percent",  label: "Field D1", alias: "Demographic Indicator 1" },
-      { id: "female_athletes_percent",   label: "Field D2", alias: "Demographic Indicator 2" },
-      { id: "female_doctors_percent",    label: "Field D3", alias: "Demographic Indicator 3" },
-	  { id: "pns_gender_wage_gap_rate",    label: "Field D4", alias: "Demographic Indicator 4" }
+      { id: "female_self_empe_percent",  label: "Field D1" },
+      { id: "female_athletes_percent",   label: "Field D2" },
+      { id: "female_doctors_percent",    label: "Field D3" },
+      { id: "pns_gender_wage_gap_rate",  label: "Field D4" }
     ]
   }
 ];
 
-// 5 fixed class breaks — values are 0–1 decimals (e.g. 0.6 = 60%)
+// 5 fixed class breaks — field values are 0–1 decimals (e.g. 0.6 = 60%)
 const CLASS_BREAKS = [
-  { min: 0,   max: 0.199, color: [239, 243, 255], label: "0 – 19"   },
-  { min: 0.2, max: 0.399, color: [116, 169, 207], label: "20 – 39"  },
-  { min: 0.4, max: 0.599, color: [49,  130, 189], label: "40 – 59"  },
-  { min: 0.6, max: 0.799, color: [13,  101, 165], label: "60 – 79"  },
-  { min: 0.8, max: 1.0,   color: [8,   48,  107], label: "80 – 100" }
+  { min: 0,   max: 0.199, color: [232, 221, 242], label: "0 – 19"   },
+  { min: 0.2, max: 0.399, color: [196, 176, 222], label: "20 – 39"  },
+  { min: 0.4, max: 0.599, color: [158, 130, 196], label: "40 – 59"  },
+  { min: 0.6, max: 0.799, color: [114,  82, 163], label: "60 – 79"  },
+  { min: 0.8, max: 1.0,   color: [ 72,  40, 120], label: "80 – 100" }
 ];
 // ============================================================
 
@@ -451,6 +452,8 @@ require([
   let activeFieldId    = CATEGORIES[0].fields[0].id;
   let highlight        = null;
   let layerView        = null;
+  let sliderMin        = 0;
+  let sliderMax        = 100;
 
   // ── Layer ──
   const layer = new FeatureLayer({
@@ -468,60 +471,55 @@ require([
     zoom: 9,
     center: [34.8, 31.9],
     highlightOptions: {
-      color: [255, 200, 0],
-      fillOpacity: 0.35,
-      haloColor: [255, 165, 0],
-      haloOpacity: 1
+      color: [185, 167, 212],
+      fillOpacity: 0.4,
+      haloColor: [114, 82, 163],
+      haloOpacity: 0.9
     },
     ui: { components: ["zoom", "compass"] },
-    padding: { right: 300 }
+    padding: { right: 290 }
   });
 
   // ── DOM refs ──
-  const tabsEl      = document.getElementById("category-tabs");
+  const catSelect   = document.getElementById("cat-select");
   const fieldEl     = document.getElementById("field-list");
   const tooltip     = document.getElementById("tooltip");
   const loadingEl   = document.getElementById("loading");
   const panel       = document.getElementById("panel");
-  const minimizeBtn = document.getElementById("minimize-btn");
-
-  // ── Minimize / expand panel ──
-  let minimized = false;
-  minimizeBtn.onclick = () => {
-    minimized = !minimized;
-    document.getElementById("field-list").style.display   = minimized ? "none" : "flex";
-    document.getElementById("legend-box").style.display   = minimized ? "none" : "block";
-    document.getElementById("slider-box").style.display   = minimized ? "none" : "block";
-    document.getElementById("category-tabs").style.display = minimized ? "none" : "flex";
-    minimizeBtn.textContent = minimized ? "+" : "−";
-    panel.style.width = minimized ? "auto" : "270px";
-    view.padding = { right: minimized ? 60 : 300 };
+  const collapseBtn = document.getElementById("collapse-btn");
+  const rangeSlider = document.getElementById("range-slider");
+  
+  // ── Collapse / expand panel ──
+  let collapsed = false;
+  collapseBtn.onclick = () => {
+    collapsed = !collapsed;
+    document.getElementById("panel-body").style.display = collapsed ? "none" : "flex";
+    collapseBtn.textContent = collapsed ? "+" : "−";
+    view.padding = { right: collapsed ? 20 : 290 };
   };
 
-  // ── Build category tabs ──
-  function buildTabs() {
-    tabsEl.innerHTML = "";
+  // ── Build category dropdown ──
+  function buildCategorySelect() {
+    catSelect.innerHTML = "";
     CATEGORIES.forEach(cat => {
-      const btn = document.createElement("button");
-      btn.className = "cat-tab" + (cat.id === activeCategoryId ? " active" : "");
-      btn.textContent = cat.label;
-      btn.onclick = () => {
-        activeCategoryId = cat.id;
-        activeFieldId = cat.fields[0].id;
-        buildTabs();
-        buildFields();
-        applyRenderer();
-      };
-      tabsEl.appendChild(btn);
+      const opt = document.createElement("option");
+      opt.value = cat.id;
+      opt.textContent = cat.label;
+      opt.selected = cat.id === activeCategoryId;
+      catSelect.appendChild(opt);
     });
   }
 
+  catSelect.addEventListener("change", () => {
+    activeCategoryId = catSelect.value;
+    activeFieldId = CATEGORIES.find(c => c.id === activeCategoryId).fields[0].id;
+    buildFields();
+    applyRenderer();
+  });
+
   // ── Build field buttons ──
   function buildFields() {
-    const label = document.getElementById("field-list-label");
     fieldEl.innerHTML = "";
-    fieldEl.appendChild(label);
-
     const cat = CATEGORIES.find(c => c.id === activeCategoryId);
     cat.fields.forEach(f => {
       const btn = document.createElement("button");
@@ -536,16 +534,28 @@ require([
     });
   }
 
-// ── Apply choropleth renderer ──
-// Applies class break colors based on the active field.
-// Renderer is re-applied when switching fields or categories.
+ // ── Build legend gradient bar ──
+  function buildLegend() {
+    const gradient = document.getElementById("legend-gradient");
+    gradient.innerHTML = "";
+    // Colors go light → dark (0 → 100), reversed since CLASS_BREAKS goes low to high
+    CLASS_BREAKS.forEach(cb => {
+      const [r, g, b] = cb.color;
+      const div = document.createElement("div");
+      div.style.flex = "1";
+      div.style.background = `rgb(${r},${g},${b})`;
+      gradient.appendChild(div);
+    });
+  }
+
+  // ── Apply choropleth renderer ──
   function applyRenderer() {
     const breaks = CLASS_BREAKS.map(cb => ({
       minValue: cb.min,
       maxValue: cb.max,
       symbol: new SimpleFillSymbol({
         color: cb.color,
-        outline: { color: [255, 255, 255, 0.4], width: 0.5 }
+        outline: { color: [255, 255, 255, 0.6], width: 0.5 }
       }),
       label: cb.label
     }));
@@ -555,75 +565,24 @@ require([
       classBreakInfos: breaks
     });
 
-    applyFilter();  // reapply filter whenever renderer changes
+    applyFilter();
   }
 
-  // ── Apply exact value filter ──
-  // Uses definitionExpression to show/gray polygons by exact field value.
-  // sliderMin/Max are 0-100 display values, converted back to 0-1 decimals.
+  // ── Apply exact value filter using SQL ──
+  // Converts 0–100 slider display values to 0–1 decimals for the field query
   function applyFilter() {
     const minVal = sliderMin / 100;
     const maxVal = sliderMax / 100;
-    // Only show features within the exact slider range
     layer.definitionExpression =
       `${activeFieldId} >= ${minVal} AND ${activeFieldId} <= ${maxVal}`;
   }
-  
-  // ── Range Slider ──
-  let sliderMin = 0;    // display values 0–100
-  let sliderMax = 100;
 
-  const track     = document.getElementById("slider-track");
-  const handleMin = document.getElementById("handle-min");
-  const handleMax = document.getElementById("handle-max");
-  const rangeEl   = document.getElementById("slider-range");
-  const minLabel  = document.getElementById("slider-min-label");
-  const maxLabel  = document.getElementById("slider-max-label");
-
-  // Update slider visual position and labels
-  function updateSliderUI() {
-    handleMin.style.left = sliderMin + "%";
-    handleMax.style.left = sliderMax + "%";
-    rangeEl.style.left   = sliderMin + "%";
-    rangeEl.style.right  = (100 - sliderMax) + "%";
-    minLabel.textContent = sliderMin + "%";
-    maxLabel.textContent = sliderMax + "%";
-  }
-
-  // Make a handle draggable — isMin=true for left handle, false for right
-  function makeDraggable(handle, isMin) {
-    handle.addEventListener("pointerdown", e => {
-      e.preventDefault();
-      const trackRect = track.getBoundingClientRect();
-
-      const onMove = e => {
-        const pct = Math.round(
-          Math.max(0, Math.min(100,
-            ((e.clientX - trackRect.left) / trackRect.width) * 100
-          ))
-        );
-        if (isMin) {
-          sliderMin = Math.min(pct, sliderMax - 1);
-        } else {
-          sliderMax = Math.max(pct, sliderMin + 1);
-        }
-        updateSliderUI();
-        applyFilter();
-      };
-
-      const onUp = () => {
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-      };
-
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
-    });
-  }
-
-  makeDraggable(handleMin, true);
-  makeDraggable(handleMax, false);
-  updateSliderUI();
+  // ── Calcite slider events ──
+  rangeSlider.addEventListener("calciteSliderInput", e => {
+    sliderMin = e.target.minValue;
+    sliderMax = e.target.maxValue;
+    applyFilter();
+  });
 
   // ── Hover highlight ──
   view.whenLayerView(layer).then(lv => {
@@ -661,8 +620,9 @@ require([
   view.when(() => {
     loadingEl.style.opacity = "0";
     setTimeout(() => loadingEl.style.display = "none", 300);
-    buildTabs();
+    buildCategorySelect();
     buildFields();
+    buildLegend();
     applyRenderer();
   });
 
