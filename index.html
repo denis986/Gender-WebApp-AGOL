@@ -17,25 +17,21 @@
     /* ── Reset ── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Pastel color palette ── */
+    /* ── Design tokens — role-based names so palette swaps stay clear ── */
     :root {
-      --rose:        #f4a7b9;
-      --rose-light:  #fdf2f5;
-      --rose-dark:   #c0607a;
-      --sage:        #a8c5a0;
-      --sage-light:  #f2f7f1;
-      --lavender:    #b9a7d4;
-      --sky:         #a7c4e0;
-      --sky-light:   #f0f6fb;
-      --mist:        #e8edf2;
-      --panel-bg:    #ffffff;
-      --panel-border:#eaeef2;
-      --text-1:      #2d3748;
-      --text-2:      #718096;
-      --text-3:      #a0aec0;
-      --radius:      12px;
-      --radius-sm:   7px;
-      --shadow:      0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+      --accent:         #b9a7d4;   /* main interactive color */
+      --accent-light:   #f3effb;   /* hover/active backgrounds */
+      --accent-dark:    #7252a3;   /* strong/pressed states */
+      --accent-muted:   #d4cce8;   /* borders, ticks, subtle strokes */
+      --surface:        #ffffff;   /* panel background */
+      --surface-subtle: #f8f9ff;   /* section/header backgrounds */
+      --border:         #eaeef2;   /* dividers and outlines */
+      --text-1:         #2d3748;   /* primary text */
+      --text-2:         #718096;   /* secondary text */
+      --text-3:         #a0aec0;   /* labels, hints */
+      --radius:         12px;
+      --radius-sm:      7px;
+      --shadow:         0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
     }
 
     /* ── Base ── */
@@ -49,22 +45,22 @@
     #viewDiv {
       position: absolute;
       inset: 0;
+      transition: bottom 0.3s ease;
     }
 
-    /* ── Floating Panel ── */
+    /* ── Floating Side Panel ── */
     #panel {
       position: absolute;
       top: 16px;
       right: 16px;
       width: 260px;
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       z-index: 10;
       direction: rtl;
       overflow: hidden;
-      transition: width 0.2s ease;
     }
 
     /* ── Panel Header ── */
@@ -73,8 +69,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 12px 14px;
-      background: linear-gradient(135deg, #f8f9ff 0%, #f0f4f8 100%);
-      border-bottom: 1px solid var(--panel-border);
+      background: linear-gradient(135deg, var(--surface-subtle) 0%, #f0f4f8 100%);
+      border-bottom: 1px solid var(--border);
     }
 
     #panel-title {
@@ -85,12 +81,12 @@
       color: var(--text-2);
     }
 
-    /* Collapse toggle button */
+    /* ── Collapse button ── */
     #collapse-btn {
       width: 24px;
       height: 24px;
       border: none;
-      background: var(--mist);
+      background: #e8edf2;
       border-radius: 6px;
       cursor: pointer;
       color: var(--text-2);
@@ -129,7 +125,7 @@
     #cat-select {
       width: 100%;
       padding: 8px 12px;
-      border: 1.5px solid var(--panel-border);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
       background: #fafbfc;
       font-size: 13px;
@@ -147,7 +143,7 @@
 
     #cat-select:focus {
       outline: none;
-      border-color: var(--lavender);
+      border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(185,167,212,0.15);
     }
 
@@ -163,7 +159,7 @@
       align-items: center;
       gap: 8px;
       padding: 8px 11px;
-      border: 1.5px solid var(--panel-border);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
       background: #fafbfc;
       cursor: pointer;
@@ -176,24 +172,23 @@
     }
 
     .field-btn:hover {
-      border-color: var(--lavender);
-      background: #f7f4fd;
-      color: #6b4fa8;
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent-dark);
     }
 
     .field-btn.active {
-      border-color: var(--lavender);
-      background: linear-gradient(135deg, #f3effb, #ede8f7);
-      color: #6b4fa8;
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent-light), #ede8f7);
+      color: var(--accent-dark);
       font-weight: 600;
     }
 
-    /* Colored dot indicator on active field */
     .field-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--lavender);
+      background: var(--accent);
       flex-shrink: 0;
       opacity: 0;
       transition: opacity 0.15s;
@@ -204,37 +199,32 @@
     /* ── Divider ── */
     .divider {
       height: 1px;
-      background: var(--panel-border);
+      background: var(--border);
       margin: 2px 0;
     }
 
-    /* ── Slider section ── */
-    #slider-section {
-      padding: 4px 2px 2px;
-    }
-
-    /* Override Calcite slider to match pastel theme */
+    /* ── Calcite slider — themed to match accent ── */
     calcite-slider {
       direction: ltr;
-      --calcite-color-brand:          #b9a7d4;
-      --calcite-color-brand-hover:    #a090c0;
-      --calcite-color-brand-press:    #8a78b0;
-      --calcite-slider-track-fill-color:       #b9a7d4;
-      --calcite-slider-handle-fill-color:      #ffffff;
-      --calcite-slider-handle-border-color:    #b9a7d4;
-      --calcite-slider-handle-extension-color: #b9a7d4;
-      --calcite-slider-tick-border-color:      #d4cce8;
-      --calcite-slider-tick-selected-color:    #b9a7d4;
-      --calcite-slider-text-color:             #718096;
+      --calcite-color-brand:                   var(--accent);
+      --calcite-color-brand-hover:             var(--accent-dark);
+      --calcite-color-brand-press:             var(--accent-dark);
+      --calcite-slider-track-fill-color:       var(--accent);
+      --calcite-slider-handle-fill-color:      var(--surface);
+      --calcite-slider-handle-border-color:    var(--accent);
+      --calcite-slider-handle-extension-color: var(--accent);
+      --calcite-slider-tick-border-color:      var(--accent-muted);
+      --calcite-slider-tick-selected-color:    var(--accent);
+      --calcite-slider-text-color:             var(--text-2);
       width: 100%;
     }
 
-    /* ── Legend ── */
+    /* ── Legend gradient bar ── */
     #legend-gradient {
       display: flex;
       border-radius: 5px;
       overflow: hidden;
-      height: 8px;
+      height: 10px;
       margin-bottom: 6px;
     }
 
@@ -243,25 +233,6 @@
       justify-content: space-between;
       font-size: 10px;
       color: var(--text-3);
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Legend class rows */
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 3px 0;
-      font-size: 11.5px;
-      color: var(--text-2);
-    }
-
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      flex-shrink: 0;
-      border: 1px solid rgba(0,0,0,0.06);
     }
 
     /* ── Hover Tooltip ── */
@@ -278,7 +249,6 @@
       white-space: nowrap;
       transform: translate(14px, -50%);
       box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-      backdrop-filter: blur(4px);
     }
 
     #tooltip::before {
@@ -292,6 +262,155 @@
       border-left: 0;
     }
 
+    /* ── Bottom Table Drawer ── */
+    #table-drawer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+      z-index: 10;
+      transform: translateY(100%);   /* hidden below screen by default */
+      transition: transform 0.3s ease;
+    }
+
+    #table-drawer.open {
+      transform: translateY(0);      /* slide up when open */
+    }
+
+    /* Drawer handle bar */
+    #table-handle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--surface-subtle), #f0f4f8);
+      border-bottom: 1px solid var(--border);
+      user-select: none;
+      direction: rtl;
+    }
+
+    #table-handle-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #table-handle-title::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    #table-toggle-arrow {
+      font-size: 13px;
+      color: var(--text-3);
+      transition: transform 0.3s;
+      direction: ltr;
+    }
+
+    #table-drawer.open #table-toggle-arrow {
+      transform: rotate(180deg);
+    }
+
+    /* Table container — ArcGIS FeatureTable renders here */
+    #table-container {
+      height: 220px;
+      overflow: hidden;
+    }
+
+    /* ── Table toggle button — always visible at bottom of map ── */
+    #table-btn {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 11;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 7px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    #table-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-dark);
+      background: var(--accent-light);
+    }
+
+    #table-btn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+/* ── Custom data table ── */
+#table-container {
+  height: 220px;
+  overflow: auto;
+  direction: rtl;
+}
+
+#data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  direction: rtl;
+}
+
+#data-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-subtle);
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 11px;
+  padding: 8px 12px;
+  border-bottom: 1.5px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+  user-select: none;
+}
+
+#data-table th:hover { background: var(--accent-light); color: var(--accent-dark); }
+
+#data-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-1);
+  text-align: right;
+  white-space: nowrap;
+}
+
+#data-table tbody tr:hover { background: var(--accent-light); }
+#data-table tbody tr.selected { background: var(--accent-light); outline: 1.5px solid var(--accent); outline-offset: -1px; }
+    
+.sort-arrow {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-right: 3px;
+}
     /* ── Loading overlay ── */
     #loading {
       position: absolute;
@@ -311,7 +430,7 @@
       width: 18px;
       height: 18px;
       border: 2px solid #e2e8f0;
-      border-top-color: var(--lavender);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
@@ -330,16 +449,13 @@
 <!-- Loading overlay -->
 <div id="loading"><div class="spinner"></div> טוען מפה…</div>
 
-<!-- ── Floating Panel ── -->
+<!-- ── Floating Side Panel ── -->
 <div id="panel">
-
-  <!-- Header -->
   <div id="panel-header">
     <span id="panel-title">מפת נתונים</span>
     <button id="collapse-btn" title="כווץ">−</button>
   </div>
 
-  <!-- Body (collapsible) -->
   <div id="panel-body">
 
     <!-- Category dropdown -->
@@ -350,16 +466,16 @@
 
     <div class="divider"></div>
 
-    <!-- Field buttons (injected by JS) -->
+    <!-- Field buttons -->
     <div>
-      <div class="section-label">שכבות</div>
+      <div class="section-label">שכבה</div>
       <div id="field-list"></div>
     </div>
 
     <div class="divider"></div>
 
-    <!-- Range slider (Calcite) -->
-    <div id="slider-section">
+    <!-- Range slider -->
+    <div>
       <div class="section-label">סינון ערכים</div>
       <calcite-slider
         id="range-slider"
@@ -372,23 +488,11 @@
 
     <div class="divider"></div>
 
-    
     <!-- Legend -->
     <div>
       <div class="section-label">מקרא</div>
-      <div id="legend-gradient" style="
-        display: flex;
-        border-radius: 5px;
-        overflow: hidden;
-        height: 10px;
-        margin-bottom: 6px;
-      "></div>
-      <div id="legend-labels" style="
-        display: flex;
-        justify-content: space-between;
-        font-size: 10px;
-        color: var(--text-3);
-      ">
+      <div id="legend-gradient"></div>
+      <div id="legend-labels">
         <span>100%</span>
         <span>80%</span>
         <span>60%</span>
@@ -398,8 +502,41 @@
       </div>
     </div>
 
-  </div><!-- end panel-body -->
-</div><!-- end panel -->
+  </div>
+</div>
+
+<!-- ── Table toggle button ── -->
+<button id="table-btn">
+  <span id="table-btn-dot"></span>
+  טבלת נתונים
+</button>
+
+<!-- ── Bottom Table Drawer ── -->
+<div id="table-drawer">
+  <div id="table-handle">
+    <span id="table-handle-title">טבלת נתונים — <span id="table-category-label"></span></span>
+    <span id="table-toggle-arrow">▲</span>
+  </div>
+  <div id="table-toolbar" style="
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-subtle);
+    direction: rtl;
+  ">
+    <input id="table-search" type="text" placeholder="חפש רשות…" style="
+      width: 100%;
+      padding: 6px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--text-1);
+      background: var(--surface);
+      direction: rtl;
+      outline: none;
+    " />
+  </div>
+  <div id="table-container"></div>
+</div>
 
 <script>
 // ============================================================
@@ -412,9 +549,9 @@ const CATEGORIES = [
     id: "education",
     label: "חינוך",
     fields: [
-      { id: "female_bagrut_elig_percent",   label: "אחוז זכאיות לתעודת בגרות" },
-      { id: "female_bagrut_math_5_percent", label: "אחוז זכאיות לתעודת בגרות שנבחנו במתמטיקה 5 יחל" },
-      { id: "female_bagrut_eng_5_percent",  label: "אחוז זכאיות לתעודת בגרות שנבחנו באנגלית 5 יחל" }
+      { id: "female_bagrut_elig_percent",   label: "Field H1" },
+      { id: "female_bagrut_math_5_percent", label: "Field H2" },
+      { id: "female_bagrut_eng_5_percent",  label: "Field H3" }
     ]
   },
   {
@@ -451,9 +588,12 @@ require([
   let activeCategoryId = CATEGORIES[0].id;
   let activeFieldId    = CATEGORIES[0].fields[0].id;
   let highlight        = null;
+  let tableHighlight   = null; 
   let layerView        = null;
   let sliderMin        = 0;
   let sliderMax        = 100;
+  let featureTable     = null;
+  let tableOpen        = false;
 
   // ── Layer ──
   const layer = new FeatureLayer({
@@ -488,8 +628,11 @@ require([
   const panel       = document.getElementById("panel");
   const collapseBtn = document.getElementById("collapse-btn");
   const rangeSlider = document.getElementById("range-slider");
-  
-  // ── Collapse / expand panel ──
+  const tableDrawer = document.getElementById("table-drawer");
+  const tableBtn    = document.getElementById("table-btn");
+  const tableHandle = document.getElementById("table-handle");
+
+  // ── Collapse / expand side panel ──
   let collapsed = false;
   collapseBtn.onclick = () => {
     collapsed = !collapsed;
@@ -497,6 +640,171 @@ require([
     collapseBtn.textContent = collapsed ? "+" : "−";
     view.padding = { right: collapsed ? 20 : 290 };
   };
+
+  // ── Table drawer toggle ──
+  function toggleTable() {
+    tableOpen = !tableOpen;
+    tableDrawer.classList.toggle("open", tableOpen);
+    tableBtn.style.display = tableOpen ? "none" : "flex";
+
+    // Push map up so the table doesn't cover the bottom of the map
+    view.padding = {
+      right: collapsed ? 20 : 290,
+      bottom: tableOpen ? 260 : 0
+    };
+
+    // Build the FeatureTable the first time it opens
+    if (tableOpen && !featureTable) {
+      buildTable();
+    }
+  }
+
+  tableBtn.addEventListener("click", toggleTable);
+  tableHandle.addEventListener("click", toggleTable);
+
+// ── Build custom HTML table ──
+  // Queries the layer directly and renders only MUNC_NAME + active category fields
+function buildTable() {
+    const cat = CATEGORIES.find(c => c.id === activeCategoryId);
+    const container = document.getElementById("table-container");
+    const searchEl  = document.getElementById("table-search");
+
+    // Update drawer title with current category name
+    document.getElementById("table-category-label").textContent = cat.label;
+
+    // Clear previous search
+    if (searchEl) searchEl.value = "";
+
+    container.innerHTML = `<div style="padding:12px; color:var(--text-3); font-size:12px;">טוען נתונים…</div>`;
+
+    const wantedFields = ["MUNC_NAME", ...cat.fields.map(f => f.id)];
+
+    const query = layer.createQuery();
+    query.outFields      = wantedFields;
+    query.returnGeometry = true;   // need geometry for map pan
+    query.orderByFields  = ["MUNC_NAME"];
+    query.where          = layer.definitionExpression || "1=1";
+
+    layer.queryFeatures(query).then(result => {
+      let features = result.features;
+      if (!features.length) {
+        container.innerHTML = `<div style="padding:12px; color:var(--text-3); font-size:12px;">אין נתונים</div>`;
+        return;
+      }
+
+      const headers = [
+        { id: "MUNC_NAME", label: "שם רשות" },
+        ...cat.fields.map(f => ({ id: f.id, label: f.label }))
+      ];
+
+      let sortField = null;
+      let sortAsc   = true;
+      let selectedRow = null;
+
+      function renderTable(data) {
+        container.innerHTML = `
+          <table id="data-table">
+            <thead>
+              <tr>
+                ${headers.map(h => `
+                  <th data-field="${h.id}">
+                    ${h.label} <span class="sort-arrow">↕</span>
+                  </th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map((f, i) => `
+                <tr data-index="${i}">
+                  ${headers.map(h => {
+                    const val = f.attributes[h.id];
+                    const display = h.id === "MUNC_NAME"
+                      ? (val ?? "—")
+                      : (val != null ? (val * 100).toFixed(1) + "%" : "—");
+                    return `<td>${display}</td>`;
+                  }).join("")}
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        `;
+
+        // ── Row click — select and pan to feature ──
+        container.querySelectorAll("tbody tr").forEach(row => {
+          row.addEventListener("click", () => {
+            // Deselect previous
+            if (selectedRow) selectedRow.classList.remove("selected");
+            selectedRow = row;
+            row.classList.add("selected");
+
+         // Highlight on map + pan to feature
+            const feature = data[parseInt(row.dataset.index)];
+
+            // Clear previous table highlight
+            if (tableHighlight) { tableHighlight.remove(); tableHighlight = null; }
+
+            // Apply new highlight — uses layerView so it matches the hover style
+            if (layerView) {
+              tableHighlight = layerView.highlight(feature);
+            }
+
+            if (feature.geometry) {
+              view.goTo({ target: feature.geometry, zoom: 10 }, { duration: 600 });
+            }
+          });
+        });
+
+        // ── Column header sort ──
+        container.querySelectorAll("th").forEach(th => {
+          th.addEventListener("click", () => {
+            const field = th.dataset.field;
+            sortAsc = sortField === field ? !sortAsc : true;
+            sortField = field;
+
+            container.querySelectorAll(".sort-arrow").forEach(a => a.textContent = "↕");
+            th.querySelector(".sort-arrow").textContent = sortAsc ? "↑" : "↓";
+
+            const colIndex = headers.findIndex(h => h.id === field);
+            const tbody = container.querySelector("tbody");
+            const rows  = Array.from(tbody.querySelectorAll("tr"));
+
+            rows.sort((a, b) => {
+              const aVal = a.cells[colIndex].textContent.replace("%", "").trim();
+              const bVal = b.cells[colIndex].textContent.replace("%", "").trim();
+              const aNum = parseFloat(aVal);
+              const bNum = parseFloat(bVal);
+              const cmp  = isNaN(aNum) || isNaN(bNum)
+                ? aVal.localeCompare(bVal, "he")
+                : aNum - bNum;
+              return sortAsc ? cmp : -cmp;
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+          });
+        });
+      }
+
+      // Initial render
+      renderTable(features);
+
+      // ── Search filter on MUNC_NAME ──
+      if (searchEl) {
+        searchEl.oninput = () => {
+          const term = searchEl.value.trim().toLowerCase();
+          const filtered = term
+            ? features.filter(f =>
+                (f.attributes["MUNC_NAME"] || "").toLowerCase().includes(term)
+              )
+            : features;
+          renderTable(filtered);
+        };
+      }
+    });
+  }
+function rebuildTableIfOpen() {
+    if (tableOpen) {
+      document.getElementById("table-container").innerHTML = "";
+      buildTable();
+    }
+  }
 
   // ── Build category dropdown ──
   function buildCategorySelect() {
@@ -515,6 +823,7 @@ require([
     activeFieldId = CATEGORIES.find(c => c.id === activeCategoryId).fields[0].id;
     buildFields();
     applyRenderer();
+    rebuildTableIfOpen();
   });
 
   // ── Build field buttons ──
@@ -534,11 +843,10 @@ require([
     });
   }
 
- // ── Build legend gradient bar ──
+  // ── Build legend gradient bar ──
   function buildLegend() {
     const gradient = document.getElementById("legend-gradient");
     gradient.innerHTML = "";
-    // Colors go light → dark (0 → 100), reversed since CLASS_BREAKS goes low to high
     CLASS_BREAKS.forEach(cb => {
       const [r, g, b] = cb.color;
       const div = document.createElement("div");
@@ -568,7 +876,7 @@ require([
     applyFilter();
   }
 
-  // ── Apply exact value filter using SQL ──
+  // ── Apply exact value filter using SQL definitionExpression ──
   // Converts 0–100 slider display values to 0–1 decimals for the field query
   function applyFilter() {
     const minVal = sliderMin / 100;
